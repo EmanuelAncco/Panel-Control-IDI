@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desarrollo e Innovaciones 2025 - 2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Cyberpunk Neon (Architectural) -->
+    <!-- Application Structure Plan: This version enhances the "Cyberpunk 2077" aesthetic with a more architectural design language. The core three-tab structure is maintained. The visual overhaul includes larger, more visible particles in the neuron background. The UI features aggressively cut-corner designs for all cards, especially the timeline items, giving them a unique, high-tech silhouette. The on-hover glitch effect is retained. The user flow is intensified with these high-impact visual feedbacks. -->
+    <!-- Visualization & Content Choices: 1. Cronograma: Report table -> Goal: Show sequence -> Viz: A high-tech timeline with glowing gold nodes and architecturally-shaped cards featuring an intense yellow transparent illumination -> Interaction: Click for modal, hover for intensified glow and glitch effect -> Justification: Enhances the futuristic mission log feel with a stronger design identity. 2. Concursos: Report text -> Goal: Detail contests -> Viz: A grid of "glitched" glassmorphism cards with a bright, interactive light-sweep effect -> Interaction: Hover to activate light sweep and glitch, click for modal -> Justification: Delivers a high-impact, genre-specific interaction. 3. Analíticas: Implicit data -> Goal: Overview -> Viz: Animated counters and charts using a full, vibrant neon color palette -> Interaction: Animated count-up, hover tooltips -> Justification: Presents data as if on a futuristic command center screen. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        :root {
+            --color-bg: #010409;
+            --color-text: #e6edf3;
+            --color-cyan: #00CFDE;
+            --color-gold: #FFD700;
+            --color-magenta: #F92672;
+        }
+        @keyframes glitch-burst {
+            0%, 100% { transform: translate(0,0) skew(0); }
+            25% { transform: translate(-2px, 2px) skew(-1deg); }
+            50% { transform: translate(2px, -2px) skew(1deg); }
+            75% { transform: translate(1px, -1px) skew(0.5deg); }
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            overflow-x: hidden;
+        }
+        .circuit-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(25px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in-up-on-scroll {
+            opacity: 0;
+            transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+        }
+        .is-visible {
+            opacity: 1;
+            transform: none;
+        }
+        .glass-card {
+            background: rgba(13, 17, 23, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 207, 222, 0.3);
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+            clip-path: polygon(0 15px, 15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%);
+        }
+        .glass-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(0, 207, 222, 0.8);
+            box-shadow: 0 15px 35px rgba(0, 207, 222, 0.1);
+            animation: glitch-burst 0.25s 2;
+        }
+        .glass-card .light-sweep {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle 300px at var(--mouse-x, -300px) var(--mouse-y, -300px), rgba(255, 255, 255, 0.1), transparent 80%);
+            will-change: background;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .text-accent-cyan { color: var(--color-cyan); text-shadow: 0 0 15px var(--color-cyan), 0 0 5px #fff; }
+        .text-accent-gold { color: var(--color-gold); text-shadow: 0 0 20px var(--color-gold), 0 0 8px rgba(255, 215, 0, 0.7); }
+        .btn-primary {
+            background-color: transparent;
+            color: var(--color-cyan);
+            border: 1px solid var(--color-cyan);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 207, 222, 0.5), inset 0 0 10px rgba(0, 207, 222, 0.3);
+             clip-path: polygon(0 5px, 5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+        }
+        .btn-primary:hover {
+            background-color: var(--color-cyan);
+            color: var(--color-bg);
+            box-shadow: 0 0 30px var(--color-cyan);
+        }
+        .tab-active {
+            color: var(--color-cyan);
+            border-bottom-color: var(--color-cyan);
+            text-shadow: 0 0 10px var(--color-cyan);
+            background: linear-gradient(to top, rgba(0, 207, 222, 0.15), transparent);
+        }
+        .timeline-item .glass-card {
+            border-color: rgba(255, 215, 0, 0.3);
+            box-shadow: inset 0 0 40px rgba(255, 215, 0, 0.15);
+            clip-path: polygon(0 20px, 20px 0, 100% 0, 100% 100%, 0 100%);
+        }
+        .timeline-item .glass-card:hover {
+            border-color: rgba(255, 215, 0, 0.7);
+            box-shadow: inset 0 0 50px rgba(255, 215, 0, 0.3), 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -31px;
+            top: 24px;
+            width: 18px;
+            height: 18px;
+            background-color: var(--color-bg);
+            border: 3px solid var(--color-gold);
+            border-radius: 50%;
+            z-index: 1;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px var(--color-gold);
+        }
+        .timeline-item:hover::before {
+            transform: scale(1.4);
+            background-color: var(--color-gold);
+        }
+        .timeline-line {
+            position: absolute;
+            left: -23px;
+            top: 24px;
+            bottom: 0;
+            width: 2px;
+            background: rgba(255, 215, 0, 0.2);
+            overflow: hidden;
+        }
+        .timeline-line::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, transparent, var(--color-gold), transparent);
+            animation: flow-line 5s linear infinite;
+        }
+        @keyframes flow-line {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .header-glow {
+            box-shadow: 0 5px 40px rgba(0, 207, 222, 0.25);
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="circuit-background">
+        <canvas id="circuit-canvas"></canvas>
+    </div>
+    <div id="app-container" class="min-h-screen relative z-10">
+        
+        <header class="py-6 glass-card rounded-b-3xl mb-4 border-t-0 header-glow">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-3xl md:text-4xl font-bold text-accent-gold tracking-wider">DESARROLLO E INNOVACIONES IDI UPC</h1>
+                <p class="mt-2 text-lg text-accent-cyan font-light tracking-widest uppercase">Panel de Control 2025-2</p>
+            </div>
+        </header>
+
+        <nav class="sticky top-0 z-30 bg-black/50 backdrop-filter backdrop-blur-xl border-y border-cyan-500/20">
+            <ul class="flex justify-center max-w-7xl mx-auto">
+                <li><button data-tab="cronograma" class="nav-tab text-sm font-medium py-3 px-6 border-b-2 border-transparent transition-colors duration-300 tab-active">Cronograma</button></li>
+                <li><button data-tab="concursos" class="nav-tab text-sm font-medium py-3 px-6 border-b-2 border-transparent text-gray-400 hover:text-cyan-300 transition-colors duration-300">Concursos</button></li>
+                <li><button data-tab="analiticas" class="nav-tab text-sm font-medium py-3 px-6 border-b-2 border-transparent text-gray-400 hover:text-cyan-300 transition-colors duration-300">Analíticas</button></li>
+            </ul>
+        </nav>
+
+        <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            
+            <section id="cronograma-view" class="tab-view">
+                 <div class="text-center mb-12">
+                    <h2 class="text-2xl font-bold text-accent-cyan">Ruta del Desarrollador</h2>
+                    <p class="mt-2 text-gray-400 max-w-2xl mx-auto font-light">Explora la línea de tiempo de la "Ruta del Desarrollador". Cada nodo representa un hito clave en nuestra misión.</p>
+                </div>
+                <div id="timeline-container" class="relative pl-8">
+                    <div class="timeline-line"></div>
+                </div>
+            </section>
+
+            <section id="concursos-view" class="tab-view hidden">
+                <div class="text-center mb-12">
+                    <h2 class="text-2xl font-bold text-accent-cyan">Arsenal de Desafíos</h2>
+                    <p class="mt-2 text-gray-400 max-w-2xl mx-auto font-light">Accede a los informes detallados de cada concurso. Selecciona una misión para ver sus objetivos y parámetros.</p>
+                </div>
+                <div id="concursos-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                </div>
+            </section>
+
+            <section id="analiticas-view" class="tab-view hidden">
+                 <div class="text-center mb-12">
+                    <h2 class="text-2xl font-bold text-accent-cyan">Análisis de Misión</h2>
+                    <p class="mt-2 text-gray-400 max-w-2xl mx-auto font-light">Visualización de datos estratégicos del semestre. Monitorea la distribución y el enfoque de nuestras operaciones.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
+                    <div class="glass-card p-5 text-center rounded-2xl fade-in-up-on-scroll">
+                        <div class="light-sweep"></div>
+                        <h3 class="text-base font-medium text-gray-400 mb-2">Eventos Totales</h3>
+                        <p id="total-events" class="text-5xl font-bold text-accent-cyan">0</p>
+                    </div>
+                     <div class="glass-card p-5 text-center rounded-2xl fade-in-up-on-scroll" style="animation-delay: 0.2s;">
+                        <div class="light-sweep"></div>
+                        <h3 class="text-base font-medium text-gray-400 mb-2">Concursos Clave</h3>
+                        <p id="total-contests" class="text-5xl font-bold text-accent-cyan">0</p>
+                    </div>
+                     <div class="glass-card p-5 text-center rounded-2xl fade-in-up-on-scroll" style="animation-delay: 0.4s;">
+                        <div class="light-sweep"></div>
+                        <h3 class="text-base font-medium text-gray-400 mb-2">Semanas Operativas</h3>
+                        <p id="total-weeks" class="text-5xl font-bold text-accent-cyan">0</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-center">
+                    <div class="lg:col-span-2 glass-card p-6 rounded-2xl fade-in-up-on-scroll" style="animation-delay: 0.6s;">
+                        <div class="light-sweep"></div>
+                        <h3 class="text-lg font-semibold text-center mb-4 text-accent-cyan">Tipos de Actividad</h3>
+                        <div class="chart-container relative h-64 w-full max-w-xs mx-auto">
+                            <canvas id="activityTypeChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="lg:col-span-3 glass-card p-6 rounded-2xl fade-in-up-on-scroll" style="animation-delay: 0.8s;">
+                        <div class="light-sweep"></div>
+                        <h3 class="text-lg font-semibold text-center mb-4 text-accent-cyan">Distribución Mensual</h3>
+                         <div class="chart-container relative h-64 w-full max-w-md mx-auto">
+                            <canvas id="monthlyActivityChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="modal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="modal-content" class="glass-card rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform scale-95 transition-all duration-300">
+            <div class="light-sweep"></div>
+            <div class="sticky top-0 bg-black/50 backdrop-blur-xl border-b border-cyan-500/20 px-6 py-4 flex justify-between items-center z-10">
+                <h3 id="modal-title" class="text-xl font-bold text-accent-cyan"></h3>
+                <button id="modal-close" class="text-2xl text-gray-400 hover:text-cyan-300 transition-colors">&times;</button>
+            </div>
+            <div id="modal-body" class="p-6 text-gray-300 leading-relaxed font-light">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const scheduleData = [
+            { week: 1, dates: '25-29 Ago', activity: 'Publicación de Actividades de Desarrollo e Innovaciones', milestone: 'Lanzamiento de concursos y bases para el ciclo. Apertura de inscripciones.', type: 'Hito' },
+            { week: 2, dates: '01-05 Sep', activity: 'Semana de Herramientas Digitales', milestone: 'Taller: IA para la Investigación. Taller: Power BI para Ingenieros.', type: 'Taller' },
+            { week: 3, dates: '08-12 Sep', activity: 'Concurso: Puentes de FIDeos', milestone: 'Día de la prueba de carga y sustentación de cálculos.', type: 'Concurso' },
+            { week: 4, dates: '15-19 Sep', activity: 'Desafíos: Reto Terra-Firme y AquaDIseño', milestone: 'Eventos simultáneos de Geotecnia e Hidráulica.', type: 'Concurso' },
+            { week: 5, dates: '22-26 Sep', activity: 'La Búsqueda del Modelo PerDIdo', milestone: 'Búsqueda del tesoro en Revit.', type: 'Concurso' },
+            { week: 6, dates: '29 Sep-03 Oct', activity: 'Escape Room: El Enigma del InnovaDOr', milestone: 'Sesiones durante la semana.', type: 'Concurso' },
+            { week: 7, dates: '06-10 Oct', activity: 'SEMANA DE EXÁMENES PARCIALES', milestone: 'SIN ACTIVIDADES', type: 'Examen' },
+            { week: 8, dates: '13-17 Oct', activity: 'SEMANA DE EXÁMENES PARCIALES', milestone: 'SIN ACTIVIDADES', type: 'Examen' },
+            { week: 9, dates: '20-24 Oct', activity: 'Fase 1 de IDI TANKs: Lanzamiento y Captación de Propuestas', milestone: 'Apertura del concurso de emprendimiento.', type: 'Concurso' },
+            { week: 10, dates: '27-31 Oct', activity: 'IDI Edits Challenge', milestone: 'Concurso de edición de video. Cierre de Captación "IDI TANKs" y selección de finalistas.', type: 'Concurso' },
+            { week: 11, dates: '03-07 Nov', activity: 'GRAN FINAL: IDI TANKs (Fase de Exposición)', milestone: 'Evento principal con jurado externo ("Sharks").', type: 'Concurso' },
+            { week: 12, dates: '10-14 Nov', activity: 'Semana del Concurso de Ponencias', milestone: 'Exposición presencial de investigaciones.', type: 'Concurso' },
+            { week: 13, dates: '17-21 Nov', activity: 'Semana de Desafíos Prácticos', milestone: 'Desafío Fénix IDI (Domótica) y Desafío IDI Rutas (Rutas Seguras).', type: 'Concurso' },
+            { week: 14, dates: '24-28 Nov', activity: 'Reto Topo-Explorador IDI', milestone: 'Búsqueda del tesoro con topografía.', type: 'Concurso' },
+            { week: 15, dates: '01-05 Dic', activity: 'SEMANA DE EXÁMENES FINALES', milestone: 'SIN ACTIVIDADES', type: 'Examen' },
+            { week: 16, dates: '08-12 Dic', activity: 'SEMANA DE EXÁMENES FINALES', milestone: 'SIN ACTIVIDADES', type: 'Examen' },
+            { week: 17, dates: '15-19 Dic', activity: 'Gala de la Innovación DI', milestone: 'Ceremonia de cierre y premiación estelar de TODOS los concursos.', type: 'Hito' },
+            { week: 18, dates: '22-26 Dic', activity: 'Hacka-Sprint IDI: Código Constructor', milestone: 'Hackaton de investigación y desarrollo.', type: 'Concurso' },
+        ];
+
+        const contestDetails = {
+            'IDI TANKs': { title: 'IDI TANKs', description: 'El proceso se vuelve más ágil. La Fase 1 (Captación) arranca en la semana 9. La Gran Final se adelanta a la semana 11, creando un evento de alto impacto justo después de los exámenes parciales, donde los finalistas seleccionados se enfrentarán directamente a los "Sharks".' },
+            'IDI Edits Challenge': { title: 'IDI Edits Challenge', description: '¡La ingeniería se vuelve viral! Este concurso tiene su propia semana para que los participantes demuestren su creatividad editando videos (formato Reel/TikTok) que hagan accesible y emocionante la ingeniería.' },
+            'Semana del Concurso de Ponencias': { title: 'Concurso de Ponencias', description: 'Un espacio académico formal para que los estudiantes presenten sus proyectos de investigación o estudios de caso ante un panel de académicos y profesionales, fomentando las habilidades de comunicación científica y el debate de ideas.' },
+            'Semana de Desafíos Prácticos': { title: 'Desafíos Prácticos: Fénix y Rutas', description: 'Concentramos dos de los concursos más aplicados, el Desafío Fénix IDI (domótica y seguridad) y el Desafío IDI Rutas (simulación de evacuación), en una sola semana de alta intensidad para poner a prueba las habilidades de los participantes en escenarios realistas.' },
+            'Reto Topo-Explorador IDI': { title: 'Reto Topo-Explorador IDI', description: '¡Una búsqueda del tesoro de alta tecnología! Los equipos recibirán un mapa topográfico y coordenadas iniciales. Deberán usar sus habilidades de lectura de planos, topografía y GPS para navegar por el campus, encontrar pistas ocultas y descifrar la ubicación final. ¡Precisión y velocidad son la clave!' },
+            'Hacka-Sprint IDI: Código Constructor': { title: 'Hacka-Sprint IDI', description: 'El semestre culmina con un hackathon de investigación y desarrollo. Un evento intensivo para crear prototipos funcionales y soluciones innovadoras a problemas complejos de la ingeniería civil, aplicando todo lo aprendido durante el ciclo.' }
+        };
+
+        const modal = document.getElementById('modal');
+        const modalContent = document.getElementById('modal-content');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+        const modalClose = document.getElementById('modal-close');
+
+        function openModal(title, content) {
+            modalTitle.textContent = title;
+            modalBody.innerHTML = content;
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modalContent.classList.remove('scale-95');
+        }
+
+        function closeModal() {
+            modal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => { modal.classList.add('pointer-events-none'); }, 300);
+        }
+
+        modalClose.addEventListener('click', closeModal);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+        function animateCountUp(el) {
+            const target = parseInt(el.dataset.target, 10);
+            if (isNaN(target)) return;
+            let count = 0;
+            const duration = 1500;
+            const stepTime = Math.max(1, Math.floor(duration / target));
+            const timer = setInterval(() => {
+                count++;
+                el.textContent = count;
+                if (count >= target) {
+                    el.textContent = target;
+                    clearInterval(timer);
+                }
+            }, stepTime);
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('circuit-canvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            resizeCanvas();
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.vx = (Math.random() - 0.5) * 0.4;
+                    this.vy = (Math.random() - 0.5) * 0.4;
+                    this.radius = Math.random() * 2.5 + 1;
+                    this.color = Math.random() > 0.8 ? 'rgba(255, 215, 0, 0.8)' : 'rgba(0, 207, 222, 0.8)';
+                }
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+            }
+
+            function initParticles() {
+                const particleCount = window.innerWidth > 768 ? 200 : 80;
+                particles = [];
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push(new Particle());
+                }
+            }
+            initParticles();
+
+            function connectParticles() {
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i; j < particles.length; j++) {
+                        const dx = particles[i].x - particles[j].x;
+                        const dy = particles[i].y - particles[j].y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        if (distance < 140) {
+                            ctx.beginPath();
+                            ctx.moveTo(particles[i].x, particles[i].y);
+                            ctx.lineTo(particles[j].x, particles[j].y);
+                            ctx.strokeStyle = `rgba(0, 207, 222, ${0.7 - distance / 140})`;
+                            ctx.lineWidth = 0.5;
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    p.update();
+                    p.draw();
+                });
+                connectParticles();
+                requestAnimationFrame(animate);
+            }
+            animate();
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                initParticles();
+            });
+
+
+            const timelineContainer = document.getElementById('timeline-container');
+            scheduleData.forEach((item, index) => {
+                const isExamWeek = item.type === 'Examen';
+                const itemEl = document.createElement('div');
+                itemEl.className = 'timeline-item relative mb-6 pl-12 fade-in-up-on-scroll';
+                itemEl.style.transitionDelay = `${index * 50}ms`;
+                let contentHTML = `
+                    <div class="glass-card p-4 rounded-xl ${isExamWeek ? '' : 'cursor-pointer'}">
+                        <div class="light-sweep"></div>
+                        <div class="flex items-baseline">
+                            <span class="font-bold text-accent-gold w-24 text-sm">Semana ${item.week}</span>
+                            <h4 class="font-semibold text-gray-200 flex-1">${item.activity}</h4>
+                        </div>
+                        <p class="text-sm text-gray-400 mt-1 ml-24 font-light">${item.milestone}</p>
+                    </div>
+                `;
+                itemEl.innerHTML = contentHTML;
+                if (isExamWeek) {
+                    itemEl.querySelector('.glass-card').classList.add('opacity-40', 'italic');
+                } else {
+                    itemEl.addEventListener('click', () => {
+                        let content = `<p>${item.milestone}</p>`;
+                        const contestKey = Object.keys(contestDetails).find(key => item.activity.includes(key));
+                        if(contestKey) {
+                            content = `<p>${contestDetails[contestKey].description}</p>`;
+                        }
+                        openModal(`${item.activity}`, content);
+                    });
+                }
+                timelineContainer.appendChild(itemEl);
+                observer.observe(itemEl);
+            });
+
+            const concursosGrid = document.getElementById('concursos-grid');
+            Object.values(contestDetails).forEach((value, index) => {
+                const card = document.createElement('div');
+                card.className = 'glass-card rounded-2xl p-6 flex flex-col fade-in-up-on-scroll';
+                card.style.transitionDelay = `${index * 100}ms`;
+                card.innerHTML = `
+                    <div class="light-sweep"></div>
+                    <h3 class="text-lg font-bold text-accent-gold mb-3">${value.title}</h3>
+                    <p class="text-gray-300 text-sm flex-grow mb-4 font-light">${value.description.substring(0, 120)}...</p>
+                    <button class="view-details-btn mt-auto btn-primary text-sm font-semibold py-2 px-5 rounded-full">Ver Informe</button>
+                `;
+                card.querySelector('.view-details-btn').addEventListener('click', () => openModal(value.title, `<p>${value.description}</p>`));
+                concursosGrid.appendChild(card);
+                observer.observe(card);
+            });
+
+            const tabs = document.querySelectorAll('.nav-tab');
+            const views = document.querySelectorAll('.tab-view');
+            let chartsRendered = false;
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetViewId = tab.dataset.tab;
+                    tabs.forEach(t => t.classList.remove('tab-active'));
+                    tab.classList.add('tab-active');
+                    views.forEach(view => {
+                        if (view.id === `${targetViewId}-view`) {
+                            view.classList.remove('hidden');
+                        } else {
+                            view.classList.add('hidden');
+                        }
+                    });
+                    if(targetViewId === 'analiticas' && !chartsRendered) {
+                        renderAnalytics();
+                        chartsRendered = true;
+                    }
+                });
+            });
+
+            function createGradient(ctx, colors) {
+                const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+                gradient.addColorStop(0, colors[0]);
+                gradient.addColorStop(1, colors[1]);
+                return gradient;
+            }
+
+            function renderAnalytics() {
+                document.querySelectorAll('#analiticas-view .fade-in-up-on-scroll').forEach(el => observer.observe(el));
+                const operativeEvents = scheduleData.filter(item => item.type !== 'Examen');
+                const contestEvents = scheduleData.filter(item => item.type === 'Concurso');
+                
+                const totalEventsEl = document.getElementById('total-events');
+                const totalContestsEl = document.getElementById('total-contests');
+                const totalWeeksEl = document.getElementById('total-weeks');
+
+                totalEventsEl.dataset.target = operativeEvents.length;
+                totalContestsEl.dataset.target = contestEvents.length;
+                totalWeeksEl.dataset.target = scheduleData.length;
+
+                animateCountUp(totalEventsEl);
+                animateCountUp(totalContestsEl);
+                animateCountUp(totalWeeksEl);
+
+                const activityCounts = operativeEvents.reduce((acc, item) => {
+                    acc[item.type] = (acc[item.type] || 0) + 1;
+                    return acc;
+                }, {});
+                
+                const chartColors = {
+                    Hito: 'rgba(255, 215, 0, 0.8)',
+                    Taller: 'rgba(249, 38, 114, 0.8)',
+                    Concurso: 'rgba(0, 207, 222, 0.8)'
+                };
+
+                const activityTypeCtx = document.getElementById('activityTypeChart').getContext('2d');
+                new Chart(activityTypeCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(activityCounts),
+                        datasets: [{
+                            data: Object.values(activityCounts),
+                            backgroundColor: Object.keys(activityCounts).map(key => chartColors[key] || '#A6E22E'),
+                            borderColor: 'rgba(1, 4, 9, 0.8)',
+                            borderWidth: 5,
+                            hoverOffset: 10
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#e6edf3', font: { size: 12 } } } } }
+                });
+
+                const monthlyCounts = scheduleData.reduce((acc, item) => {
+                    const month = new Date(item.dates.split('-')[0].trim() + ' 2024').toLocaleString('es-ES', { month: 'short' });
+                    if (item.type !== 'Examen') acc[month] = (acc[month] || 0) + 1;
+                    return acc;
+                }, {});
+                const sortedMonths = ['ago.', 'sep.', 'oct.', 'nov.', 'dic.'];
+                const sortedData = sortedMonths.map(month => monthlyCounts[month] || 0);
+
+                const monthlyActivityCtx = document.getElementById('monthlyActivityChart').getContext('2d');
+                const barGradient = createGradient(monthlyActivityCtx, ['rgba(0, 207, 222, 0.8)', 'rgba(249, 38, 114, 0.6)']);
+                
+                new Chart(monthlyActivityCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: sortedMonths.map(m => m.charAt(0).toUpperCase() + m.slice(1)),
+                        datasets: [{
+                            label: 'Número de Eventos',
+                            data: sortedData,
+                            backgroundColor: barGradient,
+                            borderColor: 'rgba(0, 207, 222, 1)',
+                            borderWidth: 1,
+                            borderRadius: 6,
+                        }]
+                    },
+                    options: {
+                        animation: { duration: 1000, easing: 'easeOutQuart' },
+                        responsive: true, maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true, ticks: { stepSize: 1, color: '#e6edf3' }, grid: { color: 'rgba(230, 237, 243, 0.1)' } },
+                            x: { ticks: { color: '#e6edf3' }, grid: { display: false } }
+                        },
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+            
+            document.querySelectorAll('.glass-card').forEach(card => {
+                card.addEventListener('mousemove', e => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    card.style.setProperty('--mouse-x', `${x}px`);
+                    card.style.setProperty('--mouse-y', `${y}px`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
