@@ -7,9 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <!-- Chosen Palette: Cyberpunk Neon (Architectural) -->
-    <!-- Application Structure Plan: This version enhances the "Cyberpunk 2077" aesthetic with a more architectural design language. The core three-tab structure is maintained. The visual overhaul includes larger, more visible particles in the neuron background. The UI features aggressively cut-corner designs for all cards, especially the timeline items, giving them a unique, high-tech silhouette. The on-hover glitch effect is retained. The user flow is intensified with these high-impact visual feedbacks. -->
-    <!-- Visualization & Content Choices: 1. Cronograma: Report table -> Goal: Show sequence -> Viz: A high-tech timeline with glowing gold nodes and architecturally-shaped cards featuring an intense yellow transparent illumination -> Interaction: Click for modal, hover for intensified glow and glitch effect -> Justification: Enhances the futuristic mission log feel with a stronger design identity. 2. Concursos: Report text -> Goal: Detail contests -> Viz: A grid of "glitched" glassmorphism cards with a bright, interactive light-sweep effect -> Interaction: Hover to activate light sweep and glitch, click for modal -> Justification: Delivers a high-impact, genre-specific interaction. 3. Analíticas: Implicit data -> Goal: Overview -> Viz: Animated counters and charts using a full, vibrant neon color palette -> Interaction: Animated count-up, hover tooltips -> Justification: Presents data as if on a futuristic command center screen. -->
+    <!-- Chosen Palette: Cyberpunk Neon (Analytical) -->
+    <!-- Application Structure Plan: This version enhances the detail and analytical depth. The "Concursos" section is redesigned from a card grid to a detailed list view, showing full descriptions upfront for easier consumption. The "Analíticas" section is expanded with two new charts (Radar for monthly intensity, Polar Area for strategic focus) to provide deeper insights into the semester's structure. The core aesthetic and user flow are maintained, but the information presentation is made more direct and comprehensive. -->
+    <!-- Visualization & Content Choices: 1. Cronograma: Unchanged from previous version. 2. Concursos: Report text -> Goal: Detail contests directly -> Viz: A vertical list of large, detailed glass-cards, one for each contest -> Interaction: Hover for glitch effect, scroll-based animations -> Justification: Eliminates the need for modals, presenting all information upfront in a clear, hierarchical manner. 3. Analíticas: Implicit data -> Goal: Deeper overview -> Viz: Added Radar and Polar Area charts (Chart.js) -> Interaction: Animated count-up, hover tooltips -> Justification: Provides more nuanced data visualizations that align with a high-tech command center theme. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         :root {
@@ -18,6 +18,7 @@
             --color-cyan: #00CFDE;
             --color-gold: #FFD700;
             --color-magenta: #F92672;
+            --color-green: #A6E22E;
         }
         @keyframes glitch-burst {
             0%, 100% { transform: translate(0,0) skew(0); }
@@ -80,19 +81,6 @@
         }
         .text-accent-cyan { color: var(--color-cyan); text-shadow: 0 0 15px var(--color-cyan), 0 0 5px #fff; }
         .text-accent-gold { color: var(--color-gold); text-shadow: 0 0 20px var(--color-gold), 0 0 8px rgba(255, 215, 0, 0.7); }
-        .btn-primary {
-            background-color: transparent;
-            color: var(--color-cyan);
-            border: 1px solid var(--color-cyan);
-            transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(0, 207, 222, 0.5), inset 0 0 10px rgba(0, 207, 222, 0.3);
-             clip-path: polygon(0 5px, 5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
-        }
-        .btn-primary:hover {
-            background-color: var(--color-cyan);
-            color: var(--color-bg);
-            box-shadow: 0 0 30px var(--color-cyan);
-        }
         .tab-active {
             color: var(--color-cyan);
             border-bottom-color: var(--color-cyan);
@@ -192,7 +180,7 @@
                     <h2 class="text-2xl font-bold text-accent-cyan">Arsenal de Desafíos</h2>
                     <p class="mt-2 text-gray-400 max-w-2xl mx-auto font-light">Accede a los informes detallados de cada concurso. Selecciona una misión para ver sus objetivos y parámetros.</p>
                 </div>
-                <div id="concursos-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div id="concursos-list" class="space-y-8">
                 </div>
             </section>
 
@@ -218,19 +206,26 @@
                         <p id="total-weeks" class="text-5xl font-bold text-accent-cyan">0</p>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-center">
-                    <div class="lg:col-span-2 glass-card p-6 rounded-2xl fade-in-up-on-scroll" style="animation-delay: 0.6s;">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div class="glass-card p-6 rounded-2xl fade-in-up-on-scroll" style="animation-delay: 0.6s;">
                         <div class="light-sweep"></div>
                         <h3 class="text-lg font-semibold text-center mb-4 text-accent-cyan">Tipos de Actividad</h3>
-                        <div class="chart-container relative h-64 w-full max-w-xs mx-auto">
+                        <div class="chart-container relative h-72 w-full max-w-sm mx-auto">
                             <canvas id="activityTypeChart"></canvas>
                         </div>
                     </div>
-                    <div class="lg:col-span-3 glass-card p-6 rounded-2xl fade-in-up-on-scroll" style="animation-delay: 0.8s;">
+                    <div class="glass-card p-6 rounded-2xl fade-in-up-on-scroll" style="animation-delay: 0.8s;">
                         <div class="light-sweep"></div>
-                        <h3 class="text-lg font-semibold text-center mb-4 text-accent-cyan">Distribución Mensual</h3>
-                         <div class="chart-container relative h-64 w-full max-w-md mx-auto">
-                            <canvas id="monthlyActivityChart"></canvas>
+                        <h3 class="text-lg font-semibold text-center mb-4 text-accent-cyan">Intensidad Mensual</h3>
+                         <div class="chart-container relative h-72 w-full max-w-sm mx-auto">
+                            <canvas id="monthlyIntensityChart"></canvas>
+                        </div>
+                    </div>
+                     <div class="lg:col-span-2 glass-card p-6 rounded-2xl fade-in-up-on-scroll" style="animation-delay: 1s;">
+                        <div class="light-sweep"></div>
+                        <h3 class="text-lg font-semibold text-center mb-4 text-accent-cyan">Enfoque Estratégico</h3>
+                         <div class="chart-container relative h-72 w-full max-w-sm mx-auto">
+                            <canvas id="strategicFocusChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -238,70 +233,44 @@
         </main>
     </div>
 
-    <div id="modal" class="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none transition-opacity duration-300">
-        <div id="modal-content" class="glass-card rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto transform scale-95 transition-all duration-300">
-            <div class="light-sweep"></div>
-            <div class="sticky top-0 bg-black/50 backdrop-blur-xl border-b border-cyan-500/20 px-6 py-4 flex justify-between items-center z-10">
-                <h3 id="modal-title" class="text-xl font-bold text-accent-cyan"></h3>
-                <button id="modal-close" class="text-2xl text-gray-400 hover:text-cyan-300 transition-colors">&times;</button>
-            </div>
-            <div id="modal-body" class="p-6 text-gray-300 leading-relaxed font-light">
-            </div>
-        </div>
-    </div>
-
     <script>
         const scheduleData = [
-            { week: 1, dates: '25-29 Ago', activity: 'Publicación de Actividades de Desarrollo e Innovaciones', milestone: 'Lanzamiento de concursos y bases para el ciclo. Apertura de inscripciones.', type: 'Hito' },
-            { week: 2, dates: '01-05 Sep', activity: 'Semana de Herramientas Digitales', milestone: 'Taller: IA para la Investigación. Taller: Power BI para Ingenieros.', type: 'Taller' },
-            { week: 3, dates: '08-12 Sep', activity: 'Concurso: Puentes de FIDeos', milestone: 'Día de la prueba de carga y sustentación de cálculos.', type: 'Concurso' },
-            { week: 4, dates: '15-19 Sep', activity: 'Desafíos: Reto Terra-Firme y AquaDIseño', milestone: 'Eventos simultáneos de Geotecnia e Hidráulica.', type: 'Concurso' },
-            { week: 5, dates: '22-26 Sep', activity: 'La Búsqueda del Modelo PerDIdo', milestone: 'Búsqueda del tesoro en Revit.', type: 'Concurso' },
-            { week: 6, dates: '29 Sep-03 Oct', activity: 'Escape Room: El Enigma del InnovaDOr', milestone: 'Sesiones durante la semana.', type: 'Concurso' },
-            { week: 7, dates: '06-10 Oct', activity: 'SEMANA DE EXÁMENES PARCIALES', milestone: 'SIN ACTIVIDADES', type: 'Examen' },
-            { week: 8, dates: '13-17 Oct', activity: 'SEMANA DE EXÁMENES PARCIALES', milestone: 'SIN ACTIVIDADES', type: 'Examen' },
-            { week: 9, dates: '20-24 Oct', activity: 'Fase 1 de IDI TANKs: Lanzamiento y Captación de Propuestas', milestone: 'Apertura del concurso de emprendimiento.', type: 'Concurso' },
-            { week: 10, dates: '27-31 Oct', activity: 'IDI Edits Challenge', milestone: 'Concurso de edición de video. Cierre de Captación "IDI TANKs" y selección de finalistas.', type: 'Concurso' },
-            { week: 11, dates: '03-07 Nov', activity: 'GRAN FINAL: IDI TANKs (Fase de Exposición)', milestone: 'Evento principal con jurado externo ("Sharks").', type: 'Concurso' },
-            { week: 12, dates: '10-14 Nov', activity: 'Semana del Concurso de Ponencias', milestone: 'Exposición presencial de investigaciones.', type: 'Concurso' },
-            { week: 13, dates: '17-21 Nov', activity: 'Semana de Desafíos Prácticos', milestone: 'Desafío Fénix IDI (Domótica) y Desafío IDI Rutas (Rutas Seguras).', type: 'Concurso' },
-            { week: 14, dates: '24-28 Nov', activity: 'Reto Topo-Explorador IDI', milestone: 'Búsqueda del tesoro con topografía.', type: 'Concurso' },
-            { week: 15, dates: '01-05 Dic', activity: 'SEMANA DE EXÁMENES FINALES', milestone: 'SIN ACTIVIDADES', type: 'Examen' },
-            { week: 16, dates: '08-12 Dic', activity: 'SEMANA DE EXÁMENES FINALES', milestone: 'SIN ACTIVIDADES', type: 'Examen' },
-            { week: 17, dates: '15-19 Dic', activity: 'Gala de la Innovación DI', milestone: 'Ceremonia de cierre y premiación estelar de TODOS los concursos.', type: 'Hito' },
-            { week: 18, dates: '22-26 Dic', activity: 'Hacka-Sprint IDI: Código Constructor', milestone: 'Hackaton de investigación y desarrollo.', type: 'Concurso' },
+            { week: 1, dates: '25-29 Ago', activity: 'Publicación de Actividades', milestone: 'Lanzamiento de concursos y bases para el ciclo.', type: 'Hito', focus: 'Administrativo' },
+            { week: 2, dates: '01-05 Sep', activity: 'Semana de Herramientas Digitales', milestone: 'Taller: IA para la Investigación. Taller: Power BI.', type: 'Taller', focus: 'Formación' },
+            { week: 3, dates: '08-12 Sep', activity: 'Concurso: Puentes de FIDeos', milestone: 'Día de la prueba de carga y sustentación.', type: 'Concurso', focus: 'Competencia' },
+            { week: 4, dates: '15-19 Sep', activity: 'Desafío: Reto Terra-Firme', milestone: 'Evento de Geotecnia y Sostenibilidad.', type: 'Concurso', focus: 'Competencia' },
+            { week: 4, dates: '15-19 Sep', activity: 'Desafío: AquaDIseño', milestone: 'Evento de Hidráulica y Tratamiento de Aguas.', type: 'Concurso', focus: 'Competencia' },
+            { week: 5, dates: '22-26 Sep', activity: 'La Búsqueda del Modelo PerDIdo', milestone: 'Búsqueda del tesoro en Revit.', type: 'Concurso', focus: 'Competencia' },
+            { week: 6, dates: '29 Sep-03 Oct', activity: 'Escape Room: El Enigma del InnovaDOr', milestone: 'Sesiones durante la semana.', type: 'Concurso', focus: 'Competencia' },
+            { week: 7, dates: '06-10 Oct', activity: 'SEMANA DE EXÁMENES PARCIALES', milestone: 'SIN ACTIVIDADES', type: 'Examen', focus: 'Académico' },
+            { week: 8, dates: '13-17 Oct', activity: 'SEMANA DE EXÁMENES PARCIALES', milestone: 'SIN ACTIVIDADES', type: 'Examen', focus: 'Académico' },
+            { week: 9, dates: '20-24 Oct', activity: 'Fase 1 de IDI TANKs', milestone: 'Apertura del concurso de emprendimiento.', type: 'Concurso', focus: 'Emprendimiento' },
+            { week: 10, dates: '27-31 Oct', activity: 'IDI Edits Challenge', milestone: 'Concurso de edición de video.', type: 'Concurso', focus: 'Competencia' },
+            { week: 11, dates: '03-07 Nov', activity: 'GRAN FINAL: IDI TANKs', milestone: 'Evento principal con jurado externo.', type: 'Concurso', focus: 'Emprendimiento' },
+            { week: 12, dates: '10-14 Nov', activity: 'Semana del Concurso de Ponencias', milestone: 'Exposición presencial de investigaciones.', type: 'Concurso', focus: 'Formación' },
+            { week: 13, dates: '17-21 Nov', activity: 'Desafío Fénix IDI', milestone: 'Evento de Domótica y Seguridad.', type: 'Concurso', focus: 'Competencia' },
+            { week: 13, dates: '17-21 Nov', activity: 'Desafío IDI Rutas', milestone: 'Evento de Simulación y Rutas Seguras.', type: 'Concurso', focus: 'Competencia' },
+            { week: 14, dates: '24-28 Nov', activity: 'Reto Topo-Explorador IDI', milestone: 'Búsqueda del tesoro con topografía.', type: 'Concurso', focus: 'Competencia' },
+            { week: 15, dates: '01-05 Dic', activity: 'SEMANA DE EXÁMENES FINALES', milestone: 'SIN ACTIVIDADES', type: 'Examen', focus: 'Académico' },
+            { week: 16, dates: '08-12 Dic', activity: 'SEMANA DE EXÁMENES FINALES', milestone: 'SIN ACTIVIDADES', type: 'Examen', focus: 'Académico' },
+            { week: 17, dates: '15-19 Dic', activity: 'Gala de la Innovación DI', milestone: 'Ceremonia de cierre y premiación.', type: 'Hito', focus: 'Administrativo' },
+            { week: 18, dates: '22-26 Dic', activity: 'Hacka-Sprint IDI: Código Constructor', milestone: 'Hackaton de investigación y desarrollo.', type: 'Concurso', focus: 'Competencia' },
         ];
 
         const contestDetails = {
-            'IDI TANKs': { title: 'IDI TANKs', description: 'El proceso se vuelve más ágil. La Fase 1 (Captación) arranca en la semana 9. La Gran Final se adelanta a la semana 11, creando un evento de alto impacto justo después de los exámenes parciales, donde los finalistas seleccionados se enfrentarán directamente a los "Sharks".' },
+            'Puentes de FIDeos': { title: 'Concurso: Puentes de FIDeos', description: 'Un desafío clásico de ingeniería estructural donde los equipos diseñan y construyen un puente a escala utilizando únicamente fideos y pegamento, buscando la máxima eficiencia entre el peso soportado y el peso propio de la estructura.' },
+            'Reto Terra-Firme': { title: 'Desafío: Reto Terra-Firme', description: 'Los equipos se enfrentan al problema de la estabilización de suelos, diseñando y construyendo un muro de contención a escala con materiales no convencionales o reciclados.' },
+            'AquaDIseño': { title: 'Desafío: AquaDIseño', description: 'Un reto de ingeniería hidráulica y ambiental. Los participantes deben diseñar un sistema de tratamiento de agua a pequeña escala para purificar un volumen de agua contaminada en un tiempo récord.' },
+            'La Búsqueda del Modelo PerDIdo': { title: 'La Búsqueda del Modelo PerDIdo', description: 'Una búsqueda del tesoro de alta tecnología dentro de un modelo BIM complejo. Los equipos deben navegar por el modelo 3D para encontrar objetos, datos o "easter eggs" ocultos.' },
+            'Escape Room: El Enigma del InnovaDOr': { title: 'Escape Room: El Enigma del InnovaDOr', description: 'Los equipos se sumergen en una narrativa y deben resolver una serie de acertijos basados en principios de ingeniería civil para "escapar" de una habitación en menos de 60 minutos.' },
+            'IDI TANKs': { title: 'IDI TANKs', description: 'El evento cumbre de emprendimiento. Los equipos desarrollan una idea de negocio basada en una solución de ingeniería y la presentan ante un panel de "tiburones" (inversores y expertos de la industria).' },
             'IDI Edits Challenge': { title: 'IDI Edits Challenge', description: '¡La ingeniería se vuelve viral! Este concurso tiene su propia semana para que los participantes demuestren su creatividad editando videos (formato Reel/TikTok) que hagan accesible y emocionante la ingeniería.' },
             'Semana del Concurso de Ponencias': { title: 'Concurso de Ponencias', description: 'Un espacio académico formal para que los estudiantes presenten sus proyectos de investigación o estudios de caso ante un panel de académicos y profesionales, fomentando las habilidades de comunicación científica y el debate de ideas.' },
-            'Semana de Desafíos Prácticos': { title: 'Desafíos Prácticos: Fénix y Rutas', description: 'Concentramos dos de los concursos más aplicados, el Desafío Fénix IDI (domótica y seguridad) y el Desafío IDI Rutas (simulación de evacuación), en una sola semana de alta intensidad para poner a prueba las habilidades de los participantes en escenarios realistas.' },
+            'Desafío Fénix IDI': { title: 'Desafío Fénix IDI', description: 'Un reto de domótica y seguridad. Los equipos construyen un prototipo de habitación inteligente a escala que debe reaccionar de forma autónoma a simulaciones de emergencias como humo o calor.' },
+            'Desafío IDI Rutas': { title: 'Desafío IDI Rutas', description: 'Los equipos reciben los planos de una edificación real y deben diseñar y simular el plan de evacuación más eficiente ante un sismo o incendio.' },
             'Reto Topo-Explorador IDI': { title: 'Reto Topo-Explorador IDI', description: '¡Una búsqueda del tesoro de alta tecnología! Los equipos recibirán un mapa topográfico y coordenadas iniciales. Deberán usar sus habilidades de lectura de planos, topografía y GPS para navegar por el campus, encontrar pistas ocultas y descifrar la ubicación final. ¡Precisión y velocidad son la clave!' },
             'Hacka-Sprint IDI: Código Constructor': { title: 'Hacka-Sprint IDI', description: 'El semestre culmina con un hackathon de investigación y desarrollo. Un evento intensivo para crear prototipos funcionales y soluciones innovadoras a problemas complejos de la ingeniería civil, aplicando todo lo aprendido durante el ciclo.' }
         };
-
-        const modal = document.getElementById('modal');
-        const modalContent = document.getElementById('modal-content');
-        const modalTitle = document.getElementById('modal-title');
-        const modalBody = document.getElementById('modal-body');
-        const modalClose = document.getElementById('modal-close');
-
-        function openModal(title, content) {
-            modalTitle.textContent = title;
-            modalBody.innerHTML = content;
-            modal.classList.remove('opacity-0', 'pointer-events-none');
-            modalContent.classList.remove('scale-95');
-        }
-
-        function closeModal() {
-            modal.classList.add('opacity-0');
-            modalContent.classList.add('scale-95');
-            setTimeout(() => { modal.classList.add('pointer-events-none'); }, 300);
-        }
-
-        modalClose.addEventListener('click', closeModal);
-        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
         function animateCountUp(el) {
             const target = parseInt(el.dataset.target, 10);
@@ -362,7 +331,7 @@
             }
 
             function initParticles() {
-                const particleCount = window.innerWidth > 768 ? 200 : 80;
+                const particleCount = window.innerWidth > 768 ? 200 : 100;
                 particles = [];
                 for (let i = 0; i < particleCount; i++) {
                     particles.push(new Particle());
@@ -403,7 +372,6 @@
                 initParticles();
             });
 
-
             const timelineContainer = document.getElementById('timeline-container');
             scheduleData.forEach((item, index) => {
                 const isExamWeek = item.type === 'Examen';
@@ -423,33 +391,22 @@
                 itemEl.innerHTML = contentHTML;
                 if (isExamWeek) {
                     itemEl.querySelector('.glass-card').classList.add('opacity-40', 'italic');
-                } else {
-                    itemEl.addEventListener('click', () => {
-                        let content = `<p>${item.milestone}</p>`;
-                        const contestKey = Object.keys(contestDetails).find(key => item.activity.includes(key));
-                        if(contestKey) {
-                            content = `<p>${contestDetails[contestKey].description}</p>`;
-                        }
-                        openModal(`${item.activity}`, content);
-                    });
                 }
                 timelineContainer.appendChild(itemEl);
                 observer.observe(itemEl);
             });
 
-            const concursosGrid = document.getElementById('concursos-grid');
+            const concursosList = document.getElementById('concursos-list');
             Object.values(contestDetails).forEach((value, index) => {
                 const card = document.createElement('div');
-                card.className = 'glass-card rounded-2xl p-6 flex flex-col fade-in-up-on-scroll';
+                card.className = 'glass-card rounded-2xl p-6 fade-in-up-on-scroll';
                 card.style.transitionDelay = `${index * 100}ms`;
                 card.innerHTML = `
                     <div class="light-sweep"></div>
-                    <h3 class="text-lg font-bold text-accent-gold mb-3">${value.title}</h3>
-                    <p class="text-gray-300 text-sm flex-grow mb-4 font-light">${value.description.substring(0, 120)}...</p>
-                    <button class="view-details-btn mt-auto btn-primary text-sm font-semibold py-2 px-5 rounded-full">Ver Informe</button>
+                    <h3 class="text-xl font-bold text-accent-gold mb-3">${value.title}</h3>
+                    <p class="text-gray-300 text-sm font-light">${value.description}</p>
                 `;
-                card.querySelector('.view-details-btn').addEventListener('click', () => openModal(value.title, `<p>${value.description}</p>`));
-                concursosGrid.appendChild(card);
+                concursosList.appendChild(card);
                 observer.observe(card);
             });
 
@@ -475,13 +432,6 @@
                     }
                 });
             });
-
-            function createGradient(ctx, colors) {
-                const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
-                gradient.addColorStop(0, colors[0]);
-                gradient.addColorStop(1, colors[1]);
-                return gradient;
-            }
 
             function renderAnalytics() {
                 document.querySelectorAll('#analiticas-view .fade-in-up-on-scroll').forEach(el => observer.observe(el));
@@ -518,7 +468,7 @@
                         labels: Object.keys(activityCounts),
                         datasets: [{
                             data: Object.values(activityCounts),
-                            backgroundColor: Object.keys(activityCounts).map(key => chartColors[key] || '#A6E22E'),
+                            backgroundColor: Object.keys(activityCounts).map(key => chartColors[key]),
                             borderColor: 'rgba(1, 4, 9, 0.8)',
                             borderWidth: 5,
                             hoverOffset: 10
@@ -535,31 +485,54 @@
                 const sortedMonths = ['ago.', 'sep.', 'oct.', 'nov.', 'dic.'];
                 const sortedData = sortedMonths.map(month => monthlyCounts[month] || 0);
 
-                const monthlyActivityCtx = document.getElementById('monthlyActivityChart').getContext('2d');
-                const barGradient = createGradient(monthlyActivityCtx, ['rgba(0, 207, 222, 0.8)', 'rgba(249, 38, 114, 0.6)']);
-                
+                const monthlyActivityCtx = document.getElementById('monthlyIntensityChart').getContext('2d');
                 new Chart(monthlyActivityCtx, {
-                    type: 'bar',
+                    type: 'radar',
                     data: {
                         labels: sortedMonths.map(m => m.charAt(0).toUpperCase() + m.slice(1)),
                         datasets: [{
-                            label: 'Número de Eventos',
+                            label: 'Intensidad de Eventos',
                             data: sortedData,
-                            backgroundColor: barGradient,
+                            backgroundColor: 'rgba(0, 207, 222, 0.2)',
                             borderColor: 'rgba(0, 207, 222, 1)',
-                            borderWidth: 1,
-                            borderRadius: 6,
+                            pointBackgroundColor: 'rgba(0, 207, 222, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(0, 207, 222, 1)'
                         }]
                     },
                     options: {
-                        animation: { duration: 1000, easing: 'easeOutQuart' },
                         responsive: true, maintainAspectRatio: false,
-                        scales: {
-                            y: { beginAtZero: true, ticks: { stepSize: 1, color: '#e6edf3' }, grid: { color: 'rgba(230, 237, 243, 0.1)' } },
-                            x: { ticks: { color: '#e6edf3' }, grid: { display: false } }
-                        },
+                        scales: { r: { angleLines: { color: 'rgba(230, 237, 243, 0.1)' }, grid: { color: 'rgba(230, 237, 243, 0.1)' }, pointLabels: { color: '#e6edf3' }, ticks: { backdropColor: 'rgba(1, 4, 9, 0.5)', color: '#e6edf3' } } },
                         plugins: { legend: { display: false } }
                     }
+                });
+
+                const focusCounts = operativeEvents.reduce((acc, item) => {
+                    acc[item.focus] = (acc[item.focus] || 0) + 1;
+                    return acc;
+                }, {});
+
+                const focusColors = {
+                    'Administrativo': 'rgba(255, 215, 0, 0.7)',
+                    'Formación': 'rgba(249, 38, 114, 0.7)',
+                    'Competencia': 'rgba(0, 207, 222, 0.7)',
+                    'Emprendimiento': 'rgba(166, 226, 46, 0.7)'
+                };
+
+                const strategicFocusCtx = document.getElementById('strategicFocusChart').getContext('2d');
+                new Chart(strategicFocusCtx, {
+                    type: 'polarArea',
+                    data: {
+                        labels: Object.keys(focusCounts),
+                        datasets: [{
+                            data: Object.values(focusCounts),
+                            backgroundColor: Object.keys(focusCounts).map(key => focusColors[key]),
+                            borderWidth: 1,
+                            borderColor: '#010409'
+                        }]
+                    },
+                     options: { responsive: true, maintainAspectRatio: false, scales: { r: { angleLines: { color: 'rgba(230, 237, 243, 0.1)' }, grid: { color: 'rgba(230, 237, 243, 0.1)' }, pointLabels: { color: '#e6edf3' }, ticks: { backdropColor: 'rgba(1, 4, 9, 0.5)', color: '#e6edf3' } } }, plugins: { legend: { position: 'bottom', labels: { color: '#e6edf3' } } } }
                 });
             }
             
